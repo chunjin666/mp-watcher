@@ -1,0 +1,18 @@
+{
+  "compileOnSave": true,
+  "compilerOptions": {
+    "module": "UMD",
+    "target": "ES6",
+    "moduleResolution": "Node",
+    "strict": true,
+    "alwaysStrict": true,
+    "noImplicitAny": true,
+    "declaration": true,
+    "skipLibCheck": true,
+    "lib": [
+      "ESNext"
+    ],
+    "rootDir": "./src",
+    "outDir": "lib",
+  }
+}

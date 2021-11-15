@@ -1,0 +1,8 @@
+:host {
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+.link-page {
+  color: #00cd96;
+}
