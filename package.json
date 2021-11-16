@@ -1,6 +1,6 @@
 {
   "name": "@gd/mpcli",
-  "version": "1.0.0",
+  "version": "1.0.0-alpha.1",
   "description": "高灯小程序命行工具",
   "main": "lib/index.js",
   "bin": {
@@ -24,16 +24,17 @@
   },
   "author": "chunjin.xu",
   "license": "MIT",
-  "devDependencies": {
-    "@types/chokidar": "^2.1.3",
-    "@types/fs-extra": "^9.0.13",
-    "@types/node": "^16.11.6",
-    "@types/wechat-miniprogram": "^3.4.0",
+  "dependencies": {
     "chalk": "^4.1.2",
     "chokidar": "^3.5.2",
     "commander": "^8.3.0",
     "fs-extra": "^10.0.0",
     "globby": "^11.0.4"
   },
-  "dependencies": {}
+  "devDependencies": {
+    "@types/chokidar": "^2.1.3",
+    "@types/fs-extra": "^9.0.13",
+    "@types/node": "^16.11.6",
+    "@types/wechat-miniprogram": "^3.4.0"
+  }
 }
