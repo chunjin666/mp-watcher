@@ -229,7 +229,12 @@ function recordUsingComponentsOf(pageOrComponent: PageOrComponent) {
     const relativeCompHtmlPath = toHtmlPath(item.path).replace(/^\//, '')
     const comp = PageOrComponentMap.get(relativeCompHtmlPath)
     if (comp) {
-      recordUsingComponentsOf(comp)
+      // 组件引用自己
+      if (comp.path === pageOrComponent.path) {
+        return
+      } else {
+        recordUsingComponentsOf(comp)
+      }
     } else {
       if (fs.existsSync(relativeCompHtmlPath)) {
         UsingComponentsRecord.set(relativeCompHtmlPath, true)
