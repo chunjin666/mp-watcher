@@ -181,7 +181,7 @@ async function readProjectPackageJson() {
   return json
 }
 
-async function updateUsingComponentsInJson(path: string, tabWidth = 2) {
+async function updateUsingComponentsInJson(path: string, tabWidth = 2, log=false) {
   const jsonPath = toJSONPath(path)
   if (!fs.existsSync(jsonPath)) return
   const htmlContent = await fs.readFile(path, 'utf-8')
@@ -215,7 +215,7 @@ async function updateUsingComponentsInJson(path: string, tabWidth = 2) {
   if (!json.usingComponents) json.usingComponents = {}
   json.usingComponents = usingComponents
   // Object.assign(json.usingComponents, usingComponents)
-  console.log(chalk.blue('update usingComponents'), json.usingComponents)
+  log && console.log(chalk.blue('update usingComponents'), json.usingComponents)
 
   fs.writeJSON(jsonPath, json, { spaces: 2 })
 }
@@ -441,13 +441,13 @@ export function watch(options?: WatchOptions) {
   })
 }
 
-export async function updateJson(options?: BaseOptions) {
+export async function updateJson(options: BaseOptions) {
   options = Object.assign({}, DefaultOptions, options)
   await init(options?.platform, options?.componentPrefixes)
   await Promise.all(
     Array.from(PageOrComponentMap.entries()).map(([key, value]) => {
       if (!key.includes('miniprogram_npm')) {
-        updateUsingComponentsInJson(value.path)
+        updateUsingComponentsInJson(value.path, options.tabWidth, false)
       }
     })
   )
@@ -470,12 +470,11 @@ export async function generateCollectionPage(options: GenerateCollectionPageOpti
   let html = ''
   allPages.forEach((page) => {
     const pagePath = removePathExtension(page.path)
-    html += `<navigator class="link-page" url="/${pagePath}">${pagePath}</navigator>
+    html += `<navigator class="link-page" url="/${pagePath}">📄${pagePath}</navigator>
     `
   })
   const pagePath = pathJoin(options.path, options.name, options.name).replace(/^\//, '')
   const pageDir = path.dirname(pagePath)
-  console.log('pageDir', pageDir)
   if (!fs.existsSync(pageDir)) {
     fs.mkdir(pageDir)
   }
@@ -485,8 +484,9 @@ export async function generateCollectionPage(options: GenerateCollectionPageOpti
   const extensions = ['.js', '.json', '.wxss']
   extensions.forEach(ext => {
     const srcPath = path.join(__dirname, '../template/collection-page/collection-page' + ext)
-    if(!fs.existsSync(srcPath)) {
-      promises.push(fs.copyFile(srcPath, pagePath + ext))
+    const distPath = pagePath + ext
+    if(!fs.existsSync(distPath)) {
+      promises.push(fs.copyFile(srcPath, distPath))
     }
   })
   await Promise.all(promises)

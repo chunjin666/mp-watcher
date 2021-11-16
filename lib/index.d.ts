@@ -13,7 +13,7 @@ export interface GenerateCollectionPageOptions extends BaseOptions {
     path: string;
 }
 export declare function watch(options?: WatchOptions): void;
-export declare function updateJson(options?: BaseOptions): Promise<void>;
+export declare function updateJson(options: BaseOptions): Promise<void>;
 export declare function updateIgnore(options: BaseOptions): Promise<void>;
 export declare function generateCollectionPage(options: GenerateCollectionPageOptions): Promise<void>;
 export {};
