@@ -1,6 +1,6 @@
 {
   "name": "@gd/mpcli",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "高灯小程序命行工具",
   "main": "lib/index.js",
   "bin": {
@@ -8,7 +8,8 @@
   },
   "files": [
     "bin/",
-    "lib/"
+    "lib/",
+    "template/"
   ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
