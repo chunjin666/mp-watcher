@@ -3,18 +3,29 @@ import path = require('path')
 import chokidar = require('chokidar')
 import chalk = require('chalk')
 import globby = require('globby')
-import { formatPath, getComponentNameFromPath, toHtmlPath, toJSONPath, readJSONFile, readJSONFileSync, removePathExtension, pathJoin, toJsPath, toCSSPath } from './utils/utils'
+import {
+  formatPath,
+  getComponentNameFromPath,
+  toHtmlPath,
+  toJSONPath,
+  readJSONFile,
+  readJSONFileSync,
+  removePathExtension,
+  pathJoin,
+  toJsPath,
+  toCSSPath,
+} from './utils/utils'
 import { getNonPrimitiveTagsFromHtml } from './utils/html'
 
 import defaultComponentPrefixConfig from './defaultComponentPrefixConfig'
 import type { SubPackageItem, ComponentBaseInfo, ComponentPrefixConfig, PageOrComponent, PageOrCompJSON, UsingComponentInfo } from './types'
 import { WxConfig } from './platformConfig'
 
-function getPrefixedComponentName(path: string, prefixConfig: Record<string, string>): string {
+function getPrefixedComponentName(path: string): string {
   let componentName: string = getComponentNameFromPath(path)
-  for (const libName in prefixConfig) {
+  for (const libName in componentPrefixConfig) {
     if (path.startsWith('miniprogram_npm/' + libName)) {
-      return prefixConfig[libName] + componentName
+      return componentPrefixConfig[libName] + componentName
     }
   }
   return componentName
@@ -29,8 +40,8 @@ async function addPageOrComponent(htmlPath: string, json?: PageOrCompJSON) {
     json = await fs.readJSON(toJSONPath(htmlPath), 'utf-8')
   }
   resolveUsingComponents(htmlPath, json!)
-  if (json?.component) {
-    let componentName: string = getPrefixedComponentName(htmlPath, componentPrefixConfig)
+  if (json!.component) {
+    let componentName: string = getPrefixedComponentName(htmlPath)
     const ownerSubPackage = findSubPackageFromPath(subPackages, htmlPath)
     const packageComponentMap = ownerSubPackage ? SubPackagesComponentMap.get(ownerSubPackage.root)! : MainPackageComponentMap
     packageComponentMap.set(componentName, { name: componentName, path: removePathExtension(htmlPath) })
@@ -44,7 +55,7 @@ async function removePageOrComponent(htmlPath: string) {
 
   const json: PageOrCompJSON = await fs.readJSON(toJSONPath(htmlPath), 'utf-8')
   if (json.component) {
-    let componentName: string = getPrefixedComponentName(htmlPath, componentPrefixConfig)
+    let componentName: string = getPrefixedComponentName(htmlPath)
     const ownerSubPackage = findSubPackageFromPath(subPackages, htmlPath)
     const packageComponentMap = ownerSubPackage ? SubPackagesComponentMap.get(ownerSubPackage.root)! : MainPackageComponentMap
     packageComponentMap.delete(componentName)
@@ -59,14 +70,14 @@ async function removePageOrComponent(htmlPath: string) {
 function getUsingComponentInfo(compPath: string): UsingComponentInfo | undefined {
   if (fs.existsSync(toHtmlPath(compPath))) {
     return {
-      name: getComponentNameFromPath(compPath),
+      name: getPrefixedComponentName(compPath),
       path: '/' + compPath,
     }
   } else if (!compPath.endsWith('/index')) {
     compPath += '/index'
     if (fs.existsSync(toHtmlPath(compPath))) {
       return {
-        name: getComponentNameFromPath(compPath),
+        name: getPrefixedComponentName(compPath),
         path: '/' + compPath,
       }
     }
@@ -80,13 +91,15 @@ function resolveUsingComponents(htmlPath: string, json: PageOrCompJSON) {
     pageOrComponent = { path: htmlPath, component: !!json.component, usingComponents: [] }
     PageOrComponentMap.set(htmlPath, pageOrComponent)
     pageOrComponent.component ? ComponentMap.set(htmlPath, pageOrComponent) : PageMap.set(htmlPath, pageOrComponent)
+  } else {
+    pageOrComponent.usingComponents = []
   }
   const usingComponents: Record<string, string> = json.usingComponents || {}
   const dependencies = Object.keys(projectPackageConfig.dependencies)
   const ownerSubPkg = subPackages.find((item) => htmlPath.startsWith(item.root))
   Object.entries(usingComponents).forEach(async ([name, compPath]) => {
     if (compPath.startsWith('weui-miniprogram/')) {
-      pageOrComponent?.usingComponents.push({ name, path: compPath })
+      pageOrComponent!.usingComponents.push({ name, path: compPath })
       return
     }
     if (!path.isAbsolute(compPath)) {
@@ -139,7 +152,6 @@ function resolveUsingComponents(htmlPath: string, json: PageOrCompJSON) {
         return
       }
     }
-
     console.log(chalk.red(`Can't find component of :`), compPath, chalk.blue(toJSONPath(htmlPath)))
   })
 }
@@ -181,7 +193,7 @@ async function readProjectPackageJson() {
   return json
 }
 
-async function updateUsingComponentsInJson(path: string, tabWidth = 2, log=false) {
+async function updateUsingComponentsInJson(path: string, tabWidth = 2) {
   const jsonPath = toJSONPath(path)
   if (!fs.existsSync(jsonPath)) return
   const htmlContent = await fs.readFile(path, 'utf-8')
@@ -214,14 +226,11 @@ async function updateUsingComponentsInJson(path: string, tabWidth = 2, log=false
   const json = (await fs.readJSON(jsonPath, 'utf-8')) || {}
   if (!json.usingComponents) json.usingComponents = {}
   json.usingComponents = usingComponents
-  // Object.assign(json.usingComponents, usingComponents)
-  log && console.log(chalk.blue('update usingComponents'), json.usingComponents)
 
   fs.writeJSON(jsonPath, json, { spaces: 2 })
 }
 
 function recordUsingComponentsOf(pageOrComponent: PageOrComponent) {
-  // console.log('record', pageOrComponent.path)
   if (pageOrComponent.component) {
     UsingComponentsRecord.set(pageOrComponent.path, true)
   }
@@ -271,11 +280,11 @@ async function writePackIgnores(ignores: string[], tabWidth = 2) {
   await fs.writeJSON(projectConfigPath, projectConfigJson, { spaces: tabWidth })
 }
 
-function checkUpdatePackIgnore(tabWidth?: number) {
+async function checkUpdatePackIgnore(tabWidth?: number): Promise<boolean> {
+  UsingComponentsRecord.clear()
   PageMap.forEach((value) => recordUsingComponentsOf(value))
-  const allComponents = Array.from(ComponentMap.keys()) //.filter((compPath) => compPath.startsWith('miniprogram_npm/'))
+  const allComponents = Array.from(ComponentMap.keys())
   const ignoreComponents = allComponents.filter((compPath) => !UsingComponentsRecord.get(compPath))
-  // console.log('ignoreComponentsInNpm', ignoreComponentsInNpm)
   const ignores: string[] = []
   ignoreComponents.forEach((compPath) => {
     const compDir = path.dirname(compPath)
@@ -298,20 +307,21 @@ function checkUpdatePackIgnore(tabWidth?: number) {
   ignores.sort()
   const prevIgnores = getPrevPackIgnores()
   if (ignores.length === prevIgnores.length && ignores.every((item, index) => item === prevIgnores[index])) {
-    return
+    return false
   }
-  console.log(chalk.yellowBright('pack ignore'), prevIgnores.slice(), ignores)
+  // console.log(chalk.yellowBright('pack ignore'), prevIgnores.slice(), ignores)
   packIgnores = ignores
-  writePackIgnores(ignores, tabWidth)
+  await writePackIgnores(ignores, tabWidth)
+  return true
 }
 
 function watchHtml(options?: WatchOptions) {
   console.log(chalk.green('start watching html ...'))
   chokidar
     .watch(['./**/*.wxml', '!node_modules', '!./**/node_modules', '!miniprogram_npm', '!./**/miniprogram_npm'])
-    .on('change', (path: string, stats: fs.Stats) => {
-      console.log('wxml change:', path)
-      updateUsingComponentsInJson(formatPath(path), options?.tabWidth)
+    .on('change', async (path: string, stats: fs.Stats) => {
+      console.log(chalk.blue('wxml changed:'), path)
+      await updateUsingComponentsInJson(formatPath(path), options?.tabWidth)
     })
 }
 
@@ -321,28 +331,37 @@ function watchJson(options?: WatchOptions) {
   chokidar
     .watch(['./**/*.json', '!node_modules', '!./**/node_modules', '!miniprogram_npm', '!./**/miniprogram_npm'])
     .on('change', async (jsonPath: string, stats?: fs.Stats) => {
-      console.log('change', jsonPath)
+      console.log(chalk.blue('json changed:'), jsonPath)
       // if (!stats || stats.birthtime.getTime() < timeBeforeWatch) return
       const htmlPath = toHtmlPath(formatPath(jsonPath))
       if (fs.existsSync(htmlPath)) {
-        addPageOrComponent(htmlPath)
-        options?.updateIgnore && checkUpdatePackIgnore(options?.tabWidth)
+        await addPageOrComponent(htmlPath, undefined)
+        if (options?.updateIgnore) {
+          const ignoreUpdated = await checkUpdatePackIgnore(options?.tabWidth)
+          ignoreUpdated && console.log(chalk.green('ignore配置已更新'))
+        }
       }
     })
-    .on('add', (jsonPath: string, stats?: fs.Stats) => {
+    .on('add', async (jsonPath: string, stats?: fs.Stats) => {
       if (!stats || stats.mtime.getTime() < timeBeforeWatch) return
-      console.log('add', jsonPath)
+      console.log(chalk.blue('json added:'), jsonPath)
       const htmlPath = toHtmlPath(formatPath(jsonPath))
       if (fs.existsSync(htmlPath)) {
-        addPageOrComponent(htmlPath)
-        options?.updateIgnore && checkUpdatePackIgnore(options?.tabWidth)
+        await addPageOrComponent(htmlPath)
+        if (options?.updateIgnore) {
+          const ignoreUpdated = await checkUpdatePackIgnore(options?.tabWidth)
+          ignoreUpdated && console.log(chalk.green('ignore配置已更新'))
+        }
       }
     })
-    .on('unlink', (jsonPath: string) => {
-      console.log('remove', jsonPath)
+    .on('unlink', async (jsonPath: string) => {
+      console.log(chalk.blue('json removed:'), jsonPath)
       const htmlPath = toHtmlPath(formatPath(jsonPath))
-      removePageOrComponent(htmlPath)
-      options?.updateIgnore && checkUpdatePackIgnore(options?.tabWidth)
+      await removePageOrComponent(htmlPath)
+      if (options?.updateIgnore) {
+        const ignoreUpdated = await checkUpdatePackIgnore(options?.tabWidth)
+        ignoreUpdated && console.log(chalk.green('ignore配置已更新'))
+      }
     })
 }
 
@@ -395,13 +414,11 @@ async function init(platform: Platforms, componentPrefixes?: ComponentPrefixConf
   const [$projectPackageConfig, $subPackages] = await Promise.all([readProjectPackageJson(), getSubPackages()])
   projectPackageConfig = Object.assign(projectPackageConfig, $projectPackageConfig)
   subPackages = $subPackages
-  const buildInPrefixes = WxConfig.buildInUILibs.reduce((acc, uiLib) => (acc[uiLib.name] = uiLib.prefix, acc), {} as ComponentPrefixConfig)
-  componentPrefixConfig = Object.assign(
-    {},
-    buildInPrefixes,
-    componentPrefixes,
-    projectPackageConfig.mpComponentPrefixes,
+  const buildInPrefixes = WxConfig.buildInUILibs.reduce(
+    (acc, uiLib) => ((acc[uiLib.name] = uiLib.prefix), acc),
+    {} as ComponentPrefixConfig
   )
+  componentPrefixConfig = Object.assign({}, buildInPrefixes, componentPrefixes, projectPackageConfig.mpComponentPrefixes)
   subPackages.forEach((item) => SubPackagesComponentMap.set(item.root, new Map()))
 
   initBuildInComponents(componentPrefixConfig)
@@ -433,28 +450,28 @@ const DefaultOptions: BaseOptions = {
   platform: 'wx',
   tabWidth: 2,
 }
-const DefaultWatchOptions: WatchOptions = Object.assign({
-  updateIgnore: false,
-}, DefaultOptions)
+const DefaultWatchOptions: WatchOptions = Object.assign(
+  {
+    updateIgnore: false,
+  },
+  DefaultOptions
+)
 
-export function watch(options?: WatchOptions) {
+export async function watch(options?: WatchOptions) {
   options = Object.assign({}, DefaultWatchOptions, options)
-  init(options?.platform, options?.componentPrefixes).then(() => {
-    options?.updateIgnore && checkUpdatePackIgnore(options?.tabWidth)
-    watchHtml(options)
-    watchJson(options)
-  })
+  await init(options?.platform, options?.componentPrefixes)
+  options?.updateIgnore && checkUpdatePackIgnore(options?.tabWidth)
+  watchHtml(options)
+  watchJson(options)
 }
 
 export async function updateJson(options: BaseOptions) {
   options = Object.assign({}, DefaultOptions, options)
   await init(options?.platform, options?.componentPrefixes)
   await Promise.all(
-    Array.from(PageOrComponentMap.entries()).map(([key, value]) => {
-      if (!key.includes('miniprogram_npm')) {
-        updateUsingComponentsInJson(value.path, options.tabWidth, false)
-      }
-    })
+    Array.from(PageOrComponentMap.entries())
+      .filter(([key, value]) => !key.includes('miniprogram_npm'))
+      .map(([key, value]) => updateUsingComponentsInJson(value.path, options.tabWidth))
   )
   console.log(chalk.green('更新成功'))
 }
@@ -470,8 +487,7 @@ export async function generateCollectionPage(options: GenerateCollectionPageOpti
   options = Object.assign({}, DefaultOptions, options)
 
   await init(options?.platform, options?.componentPrefixes)
-  // @ts-ignore
-  const allPages = Array.from(PageMap.values()).sort((a, b) => a.path - b.path)
+  const allPages = Array.from(PageMap.values()).sort((a, b) => a.path.localeCompare(b.path))
   let html = ''
   allPages.forEach((page) => {
     const pagePath = removePathExtension(page.path)
@@ -483,19 +499,17 @@ export async function generateCollectionPage(options: GenerateCollectionPageOpti
   if (!fs.existsSync(pageDir)) {
     fs.mkdir(pageDir)
   }
-  const promises = [
-    fs.writeFile(toHtmlPath(pagePath), html, 'utf-8'),
-  ]
+  const promises = [fs.writeFile(toHtmlPath(pagePath), html, 'utf-8')]
   const extensions = ['.js', '.json', '.wxss']
-  extensions.forEach(ext => {
+  extensions.forEach((ext) => {
     const srcPath = path.join(__dirname, '../template/collection-page/collection-page' + ext)
     const distPath = pagePath + ext
-    if(!fs.existsSync(distPath)) {
+    if (!fs.existsSync(distPath)) {
       promises.push(fs.copyFile(srcPath, distPath))
     }
   })
   await Promise.all(promises)
-  const appJson = await fs.readJSON('./app.json', 'utf-8') || {}
+  const appJson = (await fs.readJSON('./app.json', 'utf-8')) || {}
   if (!appJson.pages.includes(pagePath)) {
     appJson.pages.push(pagePath)
     await fs.writeJSON('./app.json', appJson, { encoding: 'utf-8', spaces: options.tabWidth })

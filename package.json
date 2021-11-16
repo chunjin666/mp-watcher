@@ -1,6 +1,6 @@
 {
   "name": "@gd/mpcli",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "高灯小程序命行工具",
   "main": "lib/index.js",
   "bin": {
