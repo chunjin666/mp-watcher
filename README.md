@@ -27,6 +27,37 @@ Commands:
   help [command]                      display help for command
 ```
 
+### 添加脚本的使用方式
+
+如果需要添加额外的参数，或者不希望记命令名的话，推荐把命令配置到 `package.json` 中使用。
+
+```json
+{
+  "scripts": {
+    "watch": "mpcli watch --update-ignore"
+  }
+}
+```
+
+开发前开启 watch：
+
+```bash
+npm run watch
+yarn watch
+````
+
+### 前缀配置
+
+目前已经内置了[@vant/weapp](https://youzan.github.io/vant-weapp/#/home) 组件库的前缀配置。如果使用到其他组件库，需要配置组件库组件对应的组件前缀，可以在package.json中增加一个`mpComponentPrefixes`字段，配置格式：
+
+```json
+{
+  "mpComponentPrefixes": {
+    "@vant/weapp": "van-"
+  }
+}
+```
+
 ### watch 监听html文件改动，自动更新json的usingComponents字段
 
 开启`--update-ignore`选项后，会自动更新不打包目录，当使用的组件有变化之后也会更新配置。
