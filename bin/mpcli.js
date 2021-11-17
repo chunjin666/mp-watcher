@@ -1,8 +1,11 @@
 #!/usr/bin/env node
 
 const { Command } = require('commander');
+const fs = require('fs-extra');
+const path = require('path');
 
 const program = new Command();
+
 
 function toNumber(value, defaultVal) {
   value = Number(value)
@@ -11,6 +14,9 @@ function toNumber(value, defaultVal) {
   }
   return value
 }
+
+const pkgJson = fs.readJSONSync(path.resolve(__dirname, '../package.json')) || { version: '1.0.0' };
+program.version(pkgJson.version);
 
 program
   .command('watch')
