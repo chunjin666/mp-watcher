@@ -4,20 +4,21 @@ import chokidar = require('chokidar')
 import chalk = require('chalk')
 import globby = require('globby')
 import {
+  readJSONFile,
+  readJSONFileSync,
+} from './utils/utils'
+import {
   formatPath,
   getComponentNameFromPath,
   toHtmlPath,
-  toJSONPath,
-  readJSONFile,
-  readJSONFileSync,
-  removePathExtension,
+  toJSONPath, removePathExtension,
   pathJoin,
   toJsPath,
-  toCSSPath,
-} from './utils/utils'
+  toCSSPath
+} from "./utils/path"
 import { getNonPrimitiveTagsFromHtml } from './utils/html'
 
-import defaultComponentPrefixConfig from './defaultComponentPrefixConfig'
+import defaultComponentPrefixConfig from './prefixesConfig'
 import type { SubPackageItem, ComponentBaseInfo, ComponentPrefixConfig, PageOrComponent, PageOrCompJSON, UsingComponentInfo } from './types'
 import { WxConfig } from './platformConfig'
 

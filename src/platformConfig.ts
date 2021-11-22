@@ -1,5 +1,6 @@
 
 export interface PlatformConfig {
+  platform: string,
   htmlExtension: string,
   cssExtension: string,
   extraScriptExtension: string,
@@ -8,6 +9,7 @@ export interface PlatformConfig {
 }
 
 export const WxConfig: Readonly<PlatformConfig> = {
+  platform: 'wx',
   htmlExtension: '.wxml',
   cssExtension: '.wxss',
   extraScriptExtension: '.wxs',
