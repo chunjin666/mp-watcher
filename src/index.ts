@@ -3,19 +3,17 @@ import path = require('path')
 import chokidar = require('chokidar')
 import chalk = require('chalk')
 import globby = require('globby')
-import {
-  readJSONFile,
-  readJSONFileSync,
-} from './utils/utils'
+import { readJSONFile, readJSONFileSync } from './utils/utils'
 import {
   formatPath,
   getComponentNameFromPath,
   toHtmlPath,
-  toJSONPath, removePathExtension,
+  toJSONPath,
+  removePathExtension,
   pathJoin,
   toJsPath,
-  toCSSPath
-} from "./utils/path"
+  toCSSPath,
+} from './utils/path'
 import { getNonPrimitiveTagsFromHtml } from './utils/html'
 
 import defaultComponentPrefixConfig from './prefixesConfig'
@@ -158,7 +156,8 @@ function resolveUsingComponents(htmlPath: string, json: PageOrCompJSON) {
 }
 
 async function traverseAllHtml() {
-  const paths: string[] = await globby(['./**/*.wxml', '!node_modules', '!./**/node_modules'])
+  console.log(path.join(projectConfigJson.miniprogramRoot || '', './**/*.wxml').replace(/\\/g, '/'))
+  const paths: string[] = await globby([path.join(projectConfigJson.miniprogramRoot || '', './**/*.wxml').replace(/\\/g, '/'), '!node_modules', '!./**/node_modules'])
   return Promise.all(
     paths.map(async (htmlPath: string) => {
       // console.log(chalk.yellow(htmlPath))
@@ -183,13 +182,15 @@ function resolvePrefixConfig(cfg?: Record<string, string>): Record<string, strin
 }
 
 async function getSubPackages(): Promise<SubPackageItem[]> {
-  const appJson = await fs.readJSON(path.join(process.cwd(), 'app.json'), 'utf-8')
+  const appJsonPath = path.join(projectConfigJson.miniprogramRoot || '', 'app.json')
+  const appJson = await fs.readJSON(appJsonPath, 'utf-8')
   const subPackages: SubPackageItem[] = appJson?.subpackages || appJson?.subPackages || []
   return subPackages.map((item) => ({ root: item.root, independent: item.independent, components: undefined }))
 }
 
 async function readProjectPackageJson() {
-  let json = await readJSONFile(path.join(process.cwd(), 'package.json'), {})
+  const packageJsonPath = path.join(projectConfigJson.miniprogramRoot || '', 'app.json')
+  let json = await readJSONFile(packageJsonPath, {})
   json.mpComponentPrefixes = resolvePrefixConfig(json.mpComponentPrefixes)
   return json
 }
@@ -395,6 +396,9 @@ let packIgnores: string[]
 let projectPackageConfig: { dependencies: Record<string, string>; mpComponentPrefixes?: ComponentPrefixConfig } = {
   dependencies: {},
 }
+let projectConfigJson: { miniprogramRoot?: string } = {
+  miniprogramRoot: '',
+}
 let subPackages: SubPackageItem[]
 let componentPrefixConfig: ComponentPrefixConfig
 
@@ -412,6 +416,7 @@ function initBuildInComponents(prefixConfig: ComponentPrefixConfig) {
 }
 
 async function init(platform: Platforms, componentPrefixes?: ComponentPrefixConfig) {
+  projectConfigJson = readJSONFileSync(path.resolve(process.cwd(), 'project.config.json'), {})
   const [$projectPackageConfig, $subPackages] = await Promise.all([readProjectPackageJson(), getSubPackages()])
   projectPackageConfig = Object.assign(projectPackageConfig, $projectPackageConfig)
   subPackages = $subPackages
@@ -431,7 +436,10 @@ async function init(platform: Platforms, componentPrefixes?: ComponentPrefixConf
   // for (let [sub, compMap] of SubPackagesComponentMap.entries()) {
   //   console.log(chalk.blue(`sub package components:`), sub, compMap)
   // }
-  // console.log('PageOrComponents', Array.from(PageOrComponentMap.values()).map(item => [item.path, item.usingComponents.map(comp => comp.path)]))
+  console.log(
+    'PageOrComponents',
+    Array.from(PageOrComponentMap.values()).map((item) => [item.path, item.usingComponents.map((comp) => comp.path)])
+  )
 }
 
 type Platforms = 'wx' | 'ali'
@@ -510,10 +518,11 @@ export async function generateCollectionPage(options: GenerateCollectionPageOpti
     }
   })
   await Promise.all(promises)
-  const appJson = (await fs.readJSON('./app.json', 'utf-8')) || {}
+  const appJsonPath = path.join(projectConfigJson.miniprogramRoot || '', 'app.json')
+  const appJson = (await fs.readJSON(appJsonPath, 'utf-8')) || {}
   if (!appJson.pages.includes(pagePath)) {
     appJson.pages.push(pagePath)
-    await fs.writeJSON('./app.json', appJson, { encoding: 'utf-8', spaces: options.tabWidth })
+    await fs.writeJSON(appJsonPath, appJson, { encoding: 'utf-8', spaces: options.tabWidth })
   }
   console.log(chalk.green('生成成功'))
 }
