@@ -1,4 +1,5 @@
 export interface PlatformConfig {
+    platform: string;
     htmlExtension: string;
     cssExtension: string;
     extraScriptExtension: string;

@@ -1,6 +1,6 @@
 {
-  "name": "@gd/mpcli",
-  "version": "1.0.6",
+  "name": "mpcli",
+  "version": "1.0.0-alpha.0",
   "description": "高灯小程序命行工具",
   "main": "lib/index.js",
   "bin": {
@@ -21,7 +21,7 @@
     "cli"
   ],
   "publishConfig": {
-    "registry": "http://gc-nex.goldentec.com/repository/npm-golden/"
+    "registry": "https://npmjs.org/"
   },
   "author": "chunjin.xu",
   "license": "MIT",

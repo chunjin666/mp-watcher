@@ -3,7 +3,7 @@
 ## 安装
 
 ```bash
-npm i -g @gd/mpcli
+npm i -g mpcli
 ```
 
 ## 命令
