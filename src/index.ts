@@ -74,15 +74,18 @@ function getUsingComponentInfo(compPath: string): UsingComponentInfo | undefined
       name: getPrefixedComponentName(compPath),
       path: '/' + compPath,
     }
-  } else if (!compPath.endsWith('/index')) {
-    compPath += '/index'
-    if (fs.existsSync(toHtmlPath(compPath))) {
+  }
+
+  if (!compPath.endsWith('/index')) {
+    const compPathWithIndex = compPath + '/index'
+    if (fs.existsSync(toHtmlPath(compPathWithIndex))) {
       return {
-        name: getPrefixedComponentName(compPath),
-        path: '/' + compPath,
+        name: getPrefixedComponentName(compPathWithIndex),
+        path: '/' + compPathWithIndex,
       }
     }
   }
+
   return undefined
 }
 
@@ -127,8 +130,8 @@ function resolveUsingComponents(htmlPath: string, json: PageOrCompJSON) {
         // 再从主包的npm包中查找
         const dep = dependencies.find((depName) => compPath.startsWith(depName + '/'))
         if (dep) {
-          const compPathAddNpmPrefix = 'miniprogram_npm/' + compPath
-          const usingComponentInfo = getUsingComponentInfo(compPathAddNpmPrefix)
+          const compPathWithNpmPrefix = 'miniprogram_npm/' + compPath
+          const usingComponentInfo = getUsingComponentInfo(compPathWithNpmPrefix)
           if (usingComponentInfo) {
             pageOrComponent!.usingComponents.push(usingComponentInfo)
             return
