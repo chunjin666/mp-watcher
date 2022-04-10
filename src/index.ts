@@ -265,9 +265,9 @@ function getPrevPackIgnores(): string[] {
   if (packIgnores) return packIgnores
   const projectConfigJson = readJSONFileSync(path.resolve(process.cwd(), 'project.config.json'), {})
   const ignores: IgnoreItem[] = projectConfigJson?.packOptions?.ignore || []
-  const manualIgnores: IgnoreItem[] = projectConfigJson?.packOptions?.manualIgnore || []
+  const extraIgnores: IgnoreItem[] = projectConfigJson?.packOptions?.extraIgnore || []
   packIgnores = ignores
-    .filter((item) => item.type === 'glob' && !manualIgnores.some((mItem) => mItem.type === item.type && mItem.value === item.value))
+    .filter((item) => item.type === 'glob' && !extraIgnores.some((mItem) => mItem.type === item.type && mItem.value === item.value))
     .map((item) => item.value)
     .sort()
   return packIgnores
@@ -279,8 +279,8 @@ async function writePackIgnores(ignores: string[], tabWidth = 2) {
   if (!projectConfigJson.packOptions) {
     projectConfigJson.packOptions = {}
   }
-  const manualIgnores: IgnoreItem[] = projectConfigJson?.packOptions?.manualIgnore || []
-  projectConfigJson.packOptions.ignore = manualIgnores.concat(ignores.map((item) => ({ type: 'glob', value: item })))
+  const extraIgnores: IgnoreItem[] = projectConfigJson?.packOptions?.extraIgnore || []
+  projectConfigJson.packOptions.ignore = extraIgnores.concat(ignores.map((item) => ({ type: 'glob', value: item })))
   await fs.writeJSON(projectConfigPath, projectConfigJson, { spaces: tabWidth })
 }
 
