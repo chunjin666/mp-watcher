@@ -1,7 +1,14 @@
 {
   "cSpell.words": [
+    "globby",
+    "miniprogram",
     "mpcli",
+    "subpackages",
     "vant",
-    "weapp"
-  ]
+    "weapp",
+    "weui",
+    "wxml",
+    "wxss"
+  ],
+  "prettier.semi": false
 }
