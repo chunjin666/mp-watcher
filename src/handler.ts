@@ -18,6 +18,7 @@ import type {
   PlatformType,
   PackIgnoreItem,
   PageInfo,
+  ProjectConfig,
 } from './types'
 
 function getPrefixedComponentName(path: string): string {
@@ -239,11 +240,11 @@ function recordUsingComponentsOf(pageOrComponent: PageOrComponent) {
 
 function getPrevPackIgnores(): (string | RegExp)[] {
   if (packIgnores) return packIgnores
-  const projectConfigJson = readJSONFileSync(path.resolve(process.cwd(), 'project.config.json'), {})
-  const ignores: PackIgnoreItem[] = projectConfigJson?.packOptions?.ignore || []
-  const extraIgnores: PackIgnoreItem[] = projectConfigJson?.packOptions?.extraIgnore || []
+  const projectConfigJson: ProjectConfig = readJSONFileSync(path.resolve(process.cwd(), 'project.config.json'), {})
+  const ignores: PackIgnoreItem[] = projectConfigJson.packOptions?.ignore || []
+  const extraIgnores: PackIgnoreItem[] = projectConfigJson.extraIgnore || []
   packIgnores = ignores
-    .filter((item) => item.type === 'glob' && !extraIgnores.some((mItem) => mItem.type === item.type && mItem.value === item.value))
+    .filter((item) => !extraIgnores.some((mItem) => mItem.type === item.type && mItem.value === item.value))
     .map((item) => item.value)
     .sort()
   return packIgnores
@@ -251,11 +252,11 @@ function getPrevPackIgnores(): (string | RegExp)[] {
 
 async function writePackIgnores(ignores: string[], tabWidth: number) {
   const projectConfigPath = path.resolve(process.cwd(), 'project.config.json')
-  const projectConfigJson = await readJSONFile(projectConfigPath, {})
+  const projectConfigJson: ProjectConfig = await readJSONFile(projectConfigPath, {})
   if (!projectConfigJson.packOptions) {
     projectConfigJson.packOptions = {}
   }
-  const extraIgnores: PackIgnoreItem[] = projectConfigJson?.packOptions?.extraIgnore || []
+  const extraIgnores: PackIgnoreItem[] = projectConfigJson.extraIgnore || []
   projectConfigJson.packOptions.ignore = extraIgnores.concat(ignores.map((item) => ({ type: 'glob', value: item })))
   await fs.writeJSON(projectConfigPath, projectConfigJson, { spaces: tabWidth })
 }

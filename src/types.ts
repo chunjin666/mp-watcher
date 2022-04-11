@@ -13,6 +13,13 @@ export interface GenerateCollectionPageOptions extends BaseOptions {
   path: string
 }
 
+export interface ProjectConfig {
+  extraIgnore?: PackIgnoreItem[]
+  packOptions?: {
+    ignore?: PackIgnoreItem[]
+  }
+}
+
 /**
  * key: lib name, value: prefix
  */

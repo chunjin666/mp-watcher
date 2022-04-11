@@ -23,7 +23,7 @@ program
   .description('监听html文件变化，并自动更新引用信息到json文件中，此外还可以自动更新不打包组件配置')
   .option('-p --platform <platform>', '小程序平台，目前仅支持wx', 'wx')
   .option('--tab-width <width>', '写JSON时换行缩近字符个数', '2')
-  .option('--update-ignore', '自动更新项目打包配置，添加不打包的组件目录，缩小上传后的代码体积。微信小程序平台配置到 project.config.json 中的 packOption.ignore 字段，如果需要手动添加忽略其他文件，本配置到 packOption.extraIgnore 中。')
+  .option('--update-ignore', '自动更新项目打包配置，添加不打包的组件目录，缩小上传后的代码体积。微信小程序平台配置到 project.config.json 中的 packOption.ignore 字段，如果需要手动添加忽略其他文件，本配置到根对象 extraIgnore 字段中。')
   .action(({ platform, tabWidth, updateIgnore }) => {
     tabWidth = toNumber(tabWidth)
     require('../lib/index').watch({ platform, tabWidth, updateIgnore });
@@ -41,7 +41,7 @@ program
 
 program
   .command('update-ignore')
-  .description('自动更新项目打包配置，添加不打包的组件目录，缩小上传后的代码体积。微信小程序平台配置到 project.config.json 中的 packOption.ignore 字段，如果需要手动添加忽略其他文件，本配置到 packOption.extraIgnore 中。')
+  .description('自动更新项目打包配置，添加不打包的组件目录，缩小上传后的代码体积。微信小程序平台配置到 project.config.json 中的 packOption.ignore 字段，如果需要手动添加忽略其他文件，本配置到根对象 extraIgnore 字段中。')
   .option('-p --platform <platform>', '小程序平台，目前仅支持wx', 'wx')
   .option('--tab-width <width>', '写JSON时换行缩近字符个数', '2')
   .action(({ platform, tabWidth }) => {

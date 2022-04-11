@@ -77,12 +77,12 @@ Usage: mpcli watch [options]
 Options:
   -p --platform <platform>  小程序平台，目前仅支持wx (default: "wx")
   --tab-width <width>       写JSON时换行缩近字符个数 (default: "2")
-  --update-ignore           更新项目打包配置，添加不打包的组件目录。微信小程序平台配置到 project.config.json 中的 packOption.ignore 字段，如果需要手动添加忽略其他文件，本配置到 packOption.extraIgnore 中。
+  --update-ignore           更新项目打包配置，添加不打包的组件目录。微信小程序平台配置到 project.config.json 中的 packOption.ignore 字段，如果需要手动添加忽略其他文件，本配置到根对象 extraIgnore 字段中。
   -h, --help                display help for command
 ```
 
 开启 `--update-ignore` 选项后，会自动更新不打包目录，当使用的组件有变化之后也会更新配置。
-> ⚠️⚠️⚠️如果有需要手动配置的 `ignore` 内容，需要添加到 `extraIgnore` 字段中，脚本会把自动生成的列表和该字段的内容合并。
+> ⚠️⚠️⚠️如果有需要手动配置的 `ignore` 内容，需要添加到根对象 `extraIgnore` 字段中，脚本会把自动生成的列表和该字段的内容合并。
 
 ### update-json 命令
 
@@ -103,7 +103,7 @@ Options:
 ### update-ignore 命令
 
 > **自动更新项目打包配置，添加不打包的组件目录，缩小上传后的代码体积。**
-> </br>微信小程序平台配置到 project.config.json 中的 packOption.ignore 字段，如果需要手动添加忽略其他文件，本配置到 packOption.extraIgnore 中。
+> </br>微信小程序平台配置到 project.config.json 中的 packOption.ignore 字段，如果需要手动添加忽略其他文件，本配置到根对象 extraIgnore 字段中。
 
 ```bash
 $ mpcli update-ignore -h                                                                                                                              
