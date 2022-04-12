@@ -271,7 +271,7 @@ export async function checkUpdatePackIgnore(tabWidth: number): Promise<boolean> 
   PageMap.forEach((value) => recordUsingComponentsOf(value))
   const allComponents = Array.from(ComponentMap.keys())
   const ignoreComponents = allComponents.filter((compPath) => !UsingComponentsRecord.get(compPath))
-  const ignores: string[] = []
+  let ignores: string[] = []
   ignoreComponents.forEach((compPath) => {
     const compDir = path.dirname(compPath)
     const compDirWithSuffixSlash = compDir + '/'
@@ -288,6 +288,8 @@ export async function checkUpdatePackIgnore(tabWidth: number): Promise<boolean> 
     }
   })
   ignores.sort()
+  ignores = mergeIgnores(ignores)
+
   const prevIgnores = getPrevPackIgnores()
   if (ignores.length === prevIgnores.length && ignores.every((item, index) => item === prevIgnores[index])) {
     return false
@@ -296,6 +298,26 @@ export async function checkUpdatePackIgnore(tabWidth: number): Promise<boolean> 
   packIgnores = ignores
   await writePackIgnores(ignores, tabWidth)
   return true
+}
+
+function mergeIgnores(ignores: string[]): string[] {
+  const mergedMap: Record<string, string[]> = {}
+  ignores
+    .filter((ignore) => /[A-Za-z0-9_-]+\/\*\.\*$/.test(ignore))
+    .forEach((ignore) => {
+      const [_, key] = ignore.match(/(.+\/)[A-Za-z0-9_-]+\/\*\.\*$/) || []
+      if (!key) return
+      mergedMap[key] = mergedMap[key] || []
+      const mergedFolder: string = ignore.match(/([A-Za-z0-9_-]+)\/\*\.\*$/)?.[1] || ''
+      mergedMap[key].push(mergedFolder)
+    })
+  const notMergedIgnores: string[] = ignores.filter((ignore) => !/[A-Za-z0-9_-]+\/\*\.\*$/.test(ignore))
+  return [
+    ...Object.entries(mergedMap).map(([key, folders]) => {
+      return folders.length > 1 ? `${key}(${folders.join('|')})/*.*` : `${key}${folders[0]}/*.*`
+    }),
+    ...notMergedIgnores,
+  ].sort()
 }
 
 // ---------- 扁平存放页面或者组件及他所使用的组件情况 ----------
