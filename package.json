@@ -1,6 +1,6 @@
 {
   "name": "mp-watcher",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "小程序命行工具",
   "main": "lib/index.js",
   "bin": {
@@ -8,7 +8,7 @@
   },
   "files": [
     "bin/",
-    "lib/",
+    "dist/",
     "template/"
   ],
   "scripts": {
