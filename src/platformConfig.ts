@@ -1,11 +1,11 @@
-
 export interface PlatformConfig {
-  platform: string,
-  htmlExtension: string,
-  cssExtension: string,
-  extraScriptExtension: string,
-  projectConfigName: string,
-  buildInUILibs: { name: string, prefix: string, components: string[] } []
+  platform: string
+  htmlExtension: string
+  cssExtension: string
+  extraScriptExtension: string
+  projectConfigName: string
+  primitiveTags: string[]
+  buildInUILibs: { name: string; prefix: string; components: string[] }[]
 }
 
 export const WxConfig: Readonly<PlatformConfig> = {
@@ -14,6 +14,57 @@ export const WxConfig: Readonly<PlatformConfig> = {
   cssExtension: '.wxss',
   extraScriptExtension: '.wxs',
   projectConfigName: 'project.config.json',
+  primitiveTags: [
+    'block',
+    'cover-image',
+    'cover-view',
+    'match-media',
+    'movable-area',
+    'page-container',
+    'scroll-view',
+    'share-element',
+    'swiper',
+    'swiper-item',
+    'view',
+    'icon',
+    'progress',
+    'rich-text',
+    'text',
+    'button',
+    'checkbox',
+    'checkbox-group',
+    'editor',
+    'form',
+    'input',
+    'keyboard-accessory',
+    'label',
+    'picker',
+    'picker-view',
+    'picker-view-column',
+    'radio',
+    'radio-group',
+    'slider',
+    'switch',
+    'textarea',
+    'functional-page-navigator',
+    'navigator',
+    'audio',
+    'camera',
+    'image',
+    'live-player',
+    'live-pusher',
+    'video',
+    'video-room',
+    'voip-room',
+    'map',
+    'canvas',
+    'ad',
+    'ad-custom',
+    'official-account',
+    'open-data',
+    'web-view',
+    'navigation-bar',
+  ],
   buildInUILibs: [
     {
       name: 'weui-miniprogram',
@@ -40,7 +91,7 @@ export const WxConfig: Readonly<PlatformConfig> = {
         'weui-miniprogram/tabbar/tabbar',
         'weui-miniprogram/toptips/toptips',
         'weui-miniprogram/uploader/uploader',
-      ]
-    }
-  ]
+      ],
+    },
+  ],
 }

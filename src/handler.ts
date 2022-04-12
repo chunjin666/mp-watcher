@@ -4,7 +4,7 @@ import chalk = require('chalk')
 import globby = require('globby')
 import { readJSONFile, readJSONFileSync } from './utils/utils'
 import { formatPath, getComponentNameFromPath, toHtmlPath, toJSONPath, removePathExtension, toJsPath } from './utils/path'
-import { getNonPrimitiveTagsFromHtml } from './utils/html'
+import { getAllTagsFromHtml } from './utils/html'
 import defaultComponentPrefixConfig from './prefixesConfig'
 import { WxConfig } from './platformConfig'
 
@@ -19,8 +19,8 @@ import type {
   PackIgnoreItem,
   PageInfo,
   ProjectConfig,
-  UsingComponentInfoNormal,
 } from './types'
+import { difference } from './utils/array'
 
 function getPrefixedComponentName(path: string): string {
   let componentName: string = getComponentNameFromPath(path)
@@ -199,7 +199,7 @@ export async function updateUsingComponentsInJson(path: string, tabWidth: number
   const jsonPath = toJSONPath(path)
   if (!fs.existsSync(jsonPath)) return
   const htmlContent = await fs.readFile(path, 'utf-8')
-  const tags = getNonPrimitiveTagsFromHtml(htmlContent)
+  const tags = difference(getAllTagsFromHtml(htmlContent), WxConfig.primitiveTags)
   console.log('tags', tags)
   const subPackage = findSubPackageFromPath(subPackages, path)
   const subPackageComponentMap = subPackage ? SubPackagesComponentMap.get(subPackage.root) : undefined
