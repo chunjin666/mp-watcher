@@ -186,7 +186,7 @@ export async function updateUsingComponentsInJson(path: string, tabWidth: number
   if (!fs.existsSync(jsonPath)) return
   const htmlContent = await fs.readFile(path, 'utf-8')
   const tags = getNonPrimitiveTagsFromHtml(htmlContent)
-  // console.log('tags', tags)
+  console.log('tags', tags)
   const subPackage = findSubPackageFromPath(subPackages, path)
   const subPackageComponentMap = subPackage ? SubPackagesComponentMap.get(subPackage.root) : undefined
   const usingComponents: Record<string, string> = tags.reduce<Record<string, string>>((acc, tag) => {
