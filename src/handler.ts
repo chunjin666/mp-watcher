@@ -19,6 +19,7 @@ import type {
   PackIgnoreItem,
   PageInfo,
   ProjectConfig,
+  UsingComponentInfoNormal,
 } from './types'
 
 function getPrefixedComponentName(path: string): string {
@@ -114,7 +115,7 @@ export async function removePageOrComponent(htmlPath: string) {
   PageMap.delete(htmlPath)
   ComponentMap.delete(htmlPath)
 
-  const json: PageOrCompJSON = await fs.readJSON(toJSONPath(htmlPath), 'utf-8')
+  const json: PageOrCompJSON = await readJSONFileSync(toJSONPath(htmlPath), {})
   if (json.component) {
     let componentName: string = getPrefixedComponentName(htmlPath)
     const ownerSubPackage = findSubPackageFromPath(subPackages, htmlPath)
@@ -217,24 +218,14 @@ export async function updateUsingComponentsInJson(path: string, tabWidth: number
 }
 
 function recordUsingComponentsOf(pageOrComponent: PageOrComponent) {
-  if ((pageOrComponent as ComponentInfo).componentName) {
+  if (pageOrComponent.isComponent) {
     UsingComponentsRecord.set(pageOrComponent.path, true)
   }
   pageOrComponent.usingComponents.forEach((item: UsingComponentInfo) => {
-    const relativeCompHtmlPath = formatPath(toHtmlPath(item.path))
-    const comp = PageOrComponentMap.get(relativeCompHtmlPath)
-    if (comp) {
-      // 组件引用自己
-      if (comp.path === pageOrComponent.path) {
-        return
-      } else {
-        recordUsingComponentsOf(comp)
-      }
-    } else {
-      if (fs.existsSync(relativeCompHtmlPath)) {
-        UsingComponentsRecord.set(relativeCompHtmlPath, true)
-      }
-    }
+    if (item.isBuiltIn) return
+    // 组件引用自己
+    if (item.component.path === pageOrComponent.path) return
+    UsingComponentsRecord.set(item.component.path, true)
   })
 }
 

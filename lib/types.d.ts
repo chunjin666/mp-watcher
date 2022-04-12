@@ -27,7 +27,7 @@ export declare type PageOrCompJSON = {
 } & Record<string, any>;
 export interface ComponentInfo {
     componentName: string;
-    /** xxx/yyy.html */
+    /** xxx/yyy.wxml */
     path: string;
     isComponent: true;
     /** json 文件内容 */
@@ -35,7 +35,7 @@ export interface ComponentInfo {
     usingComponents: UsingComponentInfo[];
 }
 export interface PageInfo {
-    /** xxx/yyy.html */
+    /** xxx/yyy.wxml */
     path: string;
     isComponent: false;
     /** json 文件内容 */
@@ -46,13 +46,13 @@ export declare type PageOrComponent = PageInfo | ComponentInfo;
 export interface UsingComponentInfoBuiltIn {
     isBuiltIn: true;
     name: string;
-    /** /xxx/yyy 文件绝对路径，不带文件扩展名 */
+    /** /xxx/yyy.wxml 文件绝对路径 */
     path: string;
 }
 export interface UsingComponentInfoNormal {
     isBuiltIn: false;
     name: string;
-    /** /xxx/yyy 文件绝对路径，不带文件扩展名 */
+    /** /xxx/yyy.wxml 文件绝对路径 */
     path: string;
     component: ComponentInfo;
 }

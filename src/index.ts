@@ -78,8 +78,8 @@ function watchJson($options?: WatchOptions) {
 
 export async function watch(options?: WatchOptions) {
   options = Object.assign({}, DefaultWatchOptions, options)
-  await init(options?.platform, options?.componentPrefixes)
-  options?.updateIgnore && checkUpdatePackIgnore(options.tabWidth!)
+  await init(options.platform, options.componentPrefixes)
+  options.updateIgnore && checkUpdatePackIgnore(options.tabWidth!)
   watchHtml(options)
   watchJson(options)
 }
