@@ -3,7 +3,7 @@ import path = require('path')
 import chalk = require('chalk')
 import globby = require('globby')
 import { readJSONFile, readJSONFileSync } from './utils/utils'
-import { formatPath, getComponentNameFromPath, toHtmlPath, toJSONPath, removePathExtension } from './utils/path'
+import { formatPath, getComponentNameFromPath, toHtmlPath, toJSONPath, removePathExtension, toJsPath } from './utils/path'
 import { getNonPrimitiveTagsFromHtml } from './utils/html'
 import defaultComponentPrefixConfig from './prefixesConfig'
 import { WxConfig } from './platformConfig'
@@ -36,11 +36,27 @@ function findSubPackageFromPath(subPackages: SubPackageItem[], path: string): Su
   return subPackages.find((item) => path.startsWith(item.root))
 }
 
-function resolvePageOrComponentInfo(htmlPath: string, json: PageOrCompJSON) {
-  const pageOrComponent = json.component
-    ? ({ isComponent: true, componentName: '', path: htmlPath, json, usingComponents: [] } as ComponentInfo)
-    : ({ isComponent: false, path: htmlPath, json, usingComponents: [] } as PageInfo)
+const ComponentJSRegExp = /\sComponent\s*\(\s*{[\s\S]*?}\s*\)/
+async function resolvePageOrComponentInfo(htmlPath: string, json: PageOrCompJSON) {
+  const componentName = getComponentNameFromPath(htmlPath)
+  let pageOrComponent: PageOrComponent
+  if (json.component) {
+    pageOrComponent = { isComponent: true, componentName, path: htmlPath, json, usingComponents: [] } as ComponentInfo
+  } else {
+    const jsStr = await fs.readFile(toJsPath(htmlPath), 'utf-8')
+    if (ComponentJSRegExp.test(jsStr)) {
+      pageOrComponent = { isComponent: true, componentName, path: htmlPath, json, usingComponents: [] } as ComponentInfo
+    } else {
+      pageOrComponent = { isComponent: false, path: htmlPath, json, usingComponents: [] } as PageInfo
+    }
+  }
 
+  storePageOrComponent(pageOrComponent, htmlPath)
+
+  return pageOrComponent
+}
+
+function storePageOrComponent(pageOrComponent: PageOrComponent, htmlPath: string) {
   if (pageOrComponent.isComponent) {
     ComponentMap.set(htmlPath, pageOrComponent)
   } else {
@@ -54,8 +70,6 @@ function resolvePageOrComponentInfo(htmlPath: string, json: PageOrCompJSON) {
     const packageComponentMap = subPackage ? SubPackagesComponentMap.get(subPackage.root)! : MainPackageComponentMap
     packageComponentMap.set(componentName, pageOrComponent)
   }
-
-  return pageOrComponent
 }
 
 /**
@@ -106,7 +120,7 @@ async function resolveUsingComponentsFromJson(pageOrComponent: PageOrComponent) 
 }
 
 export async function addPageOrComponent(htmlPath: string, json: PageOrCompJSON) {
-  const pageOrComponent = resolvePageOrComponentInfo(htmlPath, json)
+  const pageOrComponent = await resolvePageOrComponentInfo(htmlPath, json)
   await resolveUsingComponentsFromJson(pageOrComponent)
 }
 
