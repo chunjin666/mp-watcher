@@ -1,10 +1,10 @@
 {
-  "name": "mpcli",
-  "version": "1.0.0-alpha.0",
-  "description": "高灯小程序命行工具",
+  "name": "mp-watcher",
+  "version": "1.0.0",
+  "description": "小程序命行工具",
   "main": "lib/index.js",
   "bin": {
-    "mpcli": "bin/mpcli.js"
+    "mp-watcher": "bin/mp-watcher.js"
   },
   "files": [
     "bin/",
@@ -20,10 +20,14 @@
     "miniprogram",
     "cli"
   ],
-  "publishConfig": {
-    "registry": "https://npmjs.org/"
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:chunjin666/mp-watcher.git"
   },
-  "author": "chunjin.xu",
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/"
+  },
+  "author": "ChunJin Xu<https://github.com/chunjin666>",
   "license": "MIT",
   "dependencies": {
     "chalk": "^4.1.2",

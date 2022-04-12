@@ -6,20 +6,20 @@
 
 ```bash
 # 全局安装的使用方式
-npm i -g mpcli
+npm i -g mp-watcher
 # 项目级安装的使用方式
-npm i -D mpcli
+npm i -D mp-watcher
 ```
 
 ## 命令
 
 > ⚠️⚠️⚠️ 初次使用请先提交代码
 
-使用 `mpcli -h` 命令查看使用方法说明
+使用 `mp-watcher -h` 命令查看使用方法说明
 
 ```bash
-$ mpcli -h
-Usage: mpcli [options] [command]
+$ mp-watcher -h
+Usage: mp-watcher [options] [command]
 
 Options:
   -h, --help                          display help for command
@@ -39,7 +39,7 @@ Commands:
 ```json
 {
   "scripts": {
-    "watch": "mpcli watch --update-ignore"
+    "watch": "mp-watcher watch --update-ignore"
   }
 }
 ```
@@ -69,8 +69,8 @@ npm run watch
 > **监听 html 文件改动，自动更新 json 的 usingComponents 字段**
 
 ```bash
-$ mpcli watch -h
-Usage: mpcli watch [options]
+$ mp-watcher watch -h
+Usage: mp-watcher watch [options]
 
 监听html文件变化，并自动更新引用信息到json文件中，此外还可以自动更新不打包组件配置
 
@@ -89,8 +89,8 @@ Options:
 > **自动更新所有页面和组件的引用信息到json文件中，可以把一些无用的引用清除。** 初次使用时可先用此命令把所有json文件更新一遍。
 
 ```bash
-$ mpcli update-json -h
-Usage: mpcli update-json [options]
+$ mp-watcher update-json -h
+Usage: mp-watcher update-json [options]
 
 自动更新所有页面和组件的引用信息到json文件中，可以把一些无用的引用清除。初次使用时可先用此命令把所有json文件更新一遍。
 
@@ -106,8 +106,8 @@ Options:
 > </br>微信小程序平台配置到 project.config.json 中的 packOption.ignore 字段，如果需要手动添加忽略其他文件，本配置到根对象 extraIgnore 字段中。
 
 ```bash
-$ mpcli update-ignore -h                                                                                                                              
-Usage: mpcli update-ignore [options]
+$ mp-watcher update-ignore -h                                                                                                                              
+Usage: mp-watcher update-ignore [options]
 
 自动更新项目打包配置，添加不打包的组件目录
 
@@ -124,8 +124,8 @@ Options:
 ```bash
 
 ```bash
-$ mpcli generate-collection-page -h
-Usage: mpcli generate-collection-page [options]
+$ mp-watcher generate-collection-page -h
+Usage: mp-watcher generate-collection-page [options]
 
 生成所有页面列表页面，可以用来进入所有页面检查问题。
 
