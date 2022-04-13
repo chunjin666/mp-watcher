@@ -28,7 +28,7 @@ export type ComponentPrefixConfig = Record<string, string>
 export type PageOrCompJSON = { component?: boolean, usingComponents?: Record<string, string> } & Record<string, any>
 
 export interface ComponentInfo {
-  componentName: string
+  name: string
   /** xxx/yyy.wxml */
   path: string
   isComponent: true,
@@ -38,6 +38,7 @@ export interface ComponentInfo {
 }
 
 export interface PageInfo {
+  name: string
   /** xxx/yyy.wxml */
   path: string
   isComponent: false,
@@ -54,6 +55,7 @@ export interface UsingComponentInfoBuiltIn {
   name: string
   /** /xxx/yyy.wxml 文件绝对路径 */
   path: string
+  component: undefined
 }
 
 export interface UsingComponentInfoNormal {

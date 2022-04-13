@@ -37,19 +37,19 @@ function findSubPackageFromPath(subPackages: SubPackageItem[], path: string): Su
 }
 
 const ComponentJSRegExp = /\sComponent\s*\(\s*{[\s\S]*?}\s*\)/
+
 async function resolvePageOrComponentInfo(htmlPath: string, json: PageOrCompJSON) {
-  const componentName = getComponentNameFromPath(htmlPath)
-  let pageOrComponent: PageOrComponent
+  let pageOrComponent: PageOrComponent = PageOrComponentMap.get(htmlPath) || ({} as PageOrComponent)
+
+  let isComponent: boolean
   if (json.component) {
-    pageOrComponent = { isComponent: true, componentName, path: htmlPath, json, usingComponents: [] } as ComponentInfo
+    isComponent = true
   } else {
     const jsStr = await fs.readFile(toJsPath(htmlPath), 'utf-8')
-    if (ComponentJSRegExp.test(jsStr)) {
-      pageOrComponent = { isComponent: true, componentName, path: htmlPath, json, usingComponents: [] } as ComponentInfo
-    } else {
-      pageOrComponent = { isComponent: false, path: htmlPath, json, usingComponents: [] } as PageInfo
-    }
+    isComponent = ComponentJSRegExp.test(jsStr)
   }
+  const name = isComponent ? getPrefixedComponentName(htmlPath) : ''
+  Object.assign(pageOrComponent, { isComponent, name, path: htmlPath, json, usingComponents: [] } as PageOrComponent)
 
   storePageOrComponent(pageOrComponent, htmlPath)
 
@@ -65,10 +65,9 @@ function storePageOrComponent(pageOrComponent: PageOrComponent, htmlPath: string
   PageOrComponentMap.set(htmlPath, pageOrComponent)
 
   if (pageOrComponent.isComponent) {
-    let componentName: string = getPrefixedComponentName(pageOrComponent.path)
     const subPackage = findSubPackageFromPath(subPackages, pageOrComponent.path)
     const packageComponentMap = subPackage ? SubPackagesComponentMap.get(subPackage.root)! : MainPackageComponentMap
-    packageComponentMap.set(componentName, pageOrComponent)
+    packageComponentMap.set(pageOrComponent.name, pageOrComponent)
   }
 }
 
@@ -84,7 +83,7 @@ async function resolveUsingComponentsFromJson(pageOrComponent: PageOrComponent) 
     Object.entries(usingComponentsFromJson).map(async ([name, compPath]) => {
       // 兼容官方内置组件 weui
       if (compPath.startsWith('weui-miniprogram/')) {
-        pageOrComponent.usingComponents.push({ isBuiltIn: true, name, path: compPath })
+        pageOrComponent.usingComponents.push({ isBuiltIn: true, name, path: compPath, component: undefined })
         return
       }
       const targetCompPaths = []
@@ -231,16 +230,17 @@ export async function updateUsingComponentsInJson(path: string, tabWidth: number
   fs.writeJSON(jsonPath, json, { spaces: tabWidth })
 }
 
-function recordUsingComponentsOf(pageOrComponent: PageOrComponent) {
-  if (pageOrComponent.isComponent) {
-    UsingComponentsRecord.set(pageOrComponent.path, true)
+function recordUsingComponentsOfPage(page: PageInfo) {
+  page.usingComponents.forEach((item) => recordUsingComponentsOfComponent(item.component))
+}
+
+function recordUsingComponentsOfComponent(component?: ComponentInfo) {
+  const components = []
+  while (component) {
+    UsingComponentsRecord.set(component.path, true)
+    components.push(...component.usingComponents.map((item) => item.component).filter((child) => child && child.path !== component!.path))
+    component = components.shift()
   }
-  pageOrComponent.usingComponents.forEach((item: UsingComponentInfo) => {
-    if (item.isBuiltIn) return
-    // 组件引用自己
-    if (item.component.path === pageOrComponent.path) return
-    UsingComponentsRecord.set(item.component.path, true)
-  })
 }
 
 function getPrevPackIgnores(): (string | RegExp)[] {
@@ -268,7 +268,7 @@ async function writePackIgnores(ignores: string[], tabWidth: number) {
 
 export async function checkUpdatePackIgnore(tabWidth: number): Promise<boolean> {
   UsingComponentsRecord.clear()
-  PageMap.forEach((value) => recordUsingComponentsOf(value))
+  PageMap.forEach((page) => recordUsingComponentsOfPage(page))
   const allComponents = Array.from(ComponentMap.keys())
   const ignoreComponents = allComponents.filter((compPath) => !UsingComponentsRecord.get(compPath))
   const ignores: string[] = []
@@ -298,7 +298,7 @@ export async function checkUpdatePackIgnore(tabWidth: number): Promise<boolean> 
   return true
 }
 
-// ---------- 扁平存放页面或者组件及他所使用的组件情况 ----------
+// ---------- 存放页面或者组件及他所使用的组件情况 ----------
 /**
  * key: html文件path，以项目根目录为基础路径的相对路径
  */
@@ -334,7 +334,7 @@ function initBuiltInComponents(prefixConfig: ComponentPrefixConfig) {
       const compName = prefix + getComponentNameFromPath(compPath)
       BuiltInComponentMap.set(compName, {
         isComponent: true,
-        componentName: compName,
+        name: compName,
         path: removePathExtension(compPath),
         json: {},
         usingComponents: [],
